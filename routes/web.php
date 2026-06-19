@@ -2,27 +2,10 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\DB;
 
 // Public welcome page
 Route::get('/', function () {
-    try {
-        DB::connection()->getPdo();
-
-        $database = [
-            'connected' => true,
-            'driver'    => DB::connection()->getDriverName(),
-            'database'  => DB::connection()->getDatabaseName(),
-            'host'      => config('database.connections.mysql.host'),
-        ];
-    } catch (\Exception $e) {
-        $database = [
-            'connected' => false,
-            'error'     => $e->getMessage(),
-        ];
-    }
-
-    return view('welcome', compact('database'));
+    return view('welcome');
 });
 
 // Route to run Artisan commands programmatically

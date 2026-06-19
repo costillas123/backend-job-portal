@@ -107,7 +107,7 @@ Route::middleware(['system.key', 'throttle:100,1'])->group(function () {
         Route::post('/generate-employer-report', [ReportController::class, 'generateEmployerReport']);
     });
 
-    // Public Requests ======================================================
+    // Public Reqeusts ======================================================
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
@@ -132,6 +132,4 @@ Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 've
 //     ->name('verification.resend');
 
 
-Route::get('/api-test', function () {
-    return ['message' => 'API is working!'];
-});
+// Route::get('/update-employer', [EmailVerificationController::class, 'updateEmployer']);
