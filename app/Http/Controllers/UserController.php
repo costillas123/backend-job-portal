@@ -56,7 +56,14 @@ class UserController extends Controller
             }
 
             // 🧩 Include relations
-            $query->with(['jobSeeker', 'employer', 'socialMedias']);
+            $query->with(['jobSeeker', 'employer', 'socialMedias', 'manpowerAgency']);
+
+            // Sorting
+            if ($type === 'employer') {
+                $query->orderBy('name', 'asc'); // Alphabetical
+            } else {
+                $query->latest(); // created_at DESC
+            }
 
             // ⬇️ Paginate
             $users = $query->latest()->paginate($perPage);
@@ -129,6 +136,10 @@ class UserController extends Controller
                 'position' => 'nullable|required_if:user_type,employer|string|max:255',
                 'industry' => 'nullable|required_if:user_type,employer|string|max:255',
                 'sub_industry' => 'nullable|required_if:user_type,employer|string|max:255',
+
+                'assign_locator_number' => 'nullable|string|max:100',
+                'service_type' => 'nullable|string|max:255',
+                'years_in_operation' => 'nullable|string|max:50',
             ]);
 
             // Start database transaction
@@ -154,6 +165,15 @@ class UserController extends Controller
                     'company_size' => $validated['company_size'],
                     'industry' => $validated['industry'],
                     'locator_number' => $validated['locator_number'] ?? null,
+                ]);
+            }
+
+            if ($validated['user_type'] === 'manpower_agency') {
+                ManpowerAgency::create([
+                    'user_id' => $user->id,
+                    'license_number' => $validated['assign_locator_number'] ?? null,
+                    'services_offered' => $validated['service_type'] ?? null,
+                    'years_in_operation' => $validated['years_in_operation'] ?? null,
                 ]);
             }
 
@@ -214,6 +234,10 @@ class UserController extends Controller
                 'position' => 'nullable|required_if:user_type,employer|string|max:255',
                 'industry' => 'nullable|required_if:user_type,employer|string|max:255',
                 'sub_industry' => 'nullable|required_if:user_type,employer|string|max:255',
+
+                'assign_locator_number' => 'nullable|string|max:100',
+                'service_type' => 'nullable|string|max:255',
+                'years_in_operation' => 'nullable|integer',
             ]);
 
             DB::beginTransaction();
@@ -244,6 +268,17 @@ class UserController extends Controller
                     'position' => $validated['position'],
                     'sub_industry' => $validated['sub_industry'],
                 ]);
+            }
+
+            if ($validated['user_type'] === 'manpower_agency') {
+                ManpowerAgency::updateOrCreate(
+                    ['user_id' => $user->id],
+                    [
+                        'license_number' => $validated['assign_locator_number'] ?? null,
+                        'services_offered' => $validated['service_type'] ?? null,
+                        'years_in_operation' => $validated['years_in_operation'] ?? null,
+                    ]
+                );
             }
 
             // ✅ Use your custom AppHelper logger

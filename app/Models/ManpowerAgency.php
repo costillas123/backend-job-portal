@@ -25,7 +25,6 @@ class ManpowerAgency extends Model
      * The attributes that should be cast.
      */
     protected $casts = [
-        'services_offered' => 'array', // JSON column
         'years_in_operation' => 'integer',
     ];
 

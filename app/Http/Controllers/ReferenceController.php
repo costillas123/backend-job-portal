@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Reference;
+use App\Models\{Reference, Employer};
 use Illuminate\Http\Request;
 use App\Traits\ApiResponseTrait;
 use Illuminate\Support\Facades\DB;
@@ -38,8 +38,18 @@ class ReferenceController extends Controller
                 });
             }
 
-            if ($user->user_type === 'employer' || $user->user_type === 'manpower_agency') {
+            if ($user->user_type === 'employer') {
                 $query->where('user_id', $user->id);
+            }
+
+            if ($user->user_type === 'manpower_agency') {
+                // Find employers with matching locator number
+                $employerUserIds = Employer::where('locator_number', $user->manpowerAgency->license_number)
+                    ->pluck('user_id')
+                    ->toArray();
+
+                // Include the manpower agency user and all matching employer user IDs
+                $query->whereIn('user_id', array_merge([$user->id], $employerUserIds));
             }
 
             if ($month) {

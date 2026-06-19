@@ -158,4 +158,9 @@ class User extends Authenticatable
     {
         return $this->hasOne(Reference::class);
     }
+
+    public function manpowerAgency()
+    {
+        return $this->hasOne(ManpowerAgency::class);
+    }
 }

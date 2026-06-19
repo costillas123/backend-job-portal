@@ -96,7 +96,7 @@ class SubCategoryController extends Controller
             $data = SubCategory::findOrFail($id);
 
             $data->update([
-                'job_config_id' => $validated['job_config_id'],
+                'category_id' => $validated['category_id'],
                 'name'          => $validated['name'],
                 'description'   => $validated['description'] ?? $data->description,
                 'is_active'     => $validated['is_active'] ?? $data->is_active,
