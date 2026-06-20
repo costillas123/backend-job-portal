@@ -97,12 +97,20 @@
 
         .certification-statement {
             font-weight: bold;
-            font-size: 9px;
+            font-size: 8px;
+        }
+
+        .absolute-title {
+            position: absolute;
+            top: -20px;
+            right: 10px;
+            font-size: 12px;
         }
     </style>
 </head>
 
 <body>
+    <div class="absolute-title">{{ $filters['type'] }}</div>
 
     <!-- HEADER -->
     <div class="header">
@@ -158,121 +166,121 @@
             </tr>
 
             @php
-            $records = collect($records->details ?? [])
-            ->filter(function ($item) {
-            return $item->nationality == 'Filipino';
-            })
-            ->values();
+                $records = collect($records->details ?? [])
+                    ->filter(function ($item) {
+                        return $item->nationality == 'Filipino';
+                    })
+                    ->values();
 
-            $indirectCategories = ['Security', 'Janitorial', 'Ground', 'Construction', 'Others'];
-            $categories = array_merge(['Direct'], $indirectCategories);
-            $genders = ['Male', 'Female'];
-            $statuses = ['Regular', 'Probationary', 'Casual'];
-            $directs = ['AVP and up', 'Managerial', 'Supervisory', 'Rank and File'];
-            $residences = [
-            'Angeles',
-            'Mabalacat',
-            'Porac',
-            'Other Pampanga',
-            'Bamban',
-            'Capas',
-            'Other Tarlac',
-            'Others',
-            ];
+                $indirectCategories = ['Security', 'Janitorial', 'Ground', 'Construction', 'Others'];
+                $categories = array_merge(['Direct'], $indirectCategories);
+                $genders = ['Male', 'Female'];
+                $statuses = ['Regular', 'Probationary', 'Casual'];
+                $directs = ['AVP and up', 'Managerial', 'Supervisory', 'Rank and File'];
+                $residences = [
+                    'Angeles',
+                    'Mabalacat',
+                    'Porac',
+                    'Other Pampanga',
+                    'Bamban',
+                    'Capas',
+                    'Other Tarlac',
+                    'Others',
+                ];
 
-            $directCounts = [];
-            foreach ($directs as $direct) {
-            $directCounts[$direct] = $records->where('category', $direct)->count();
-            }
+                $directCounts = [];
+                foreach ($directs as $direct) {
+                    $directCounts[$direct] = $records->where('category', $direct)->count();
+                }
 
-            $directIndirectCounts = [];
-            foreach ($indirectCategories as $cat) {
-            $directIndirectCounts[$cat] = $records->where('category', $cat)->count();
-            }
+                $directIndirectCounts = [];
+                foreach ($indirectCategories as $cat) {
+                    $directIndirectCounts[$cat] = $records->where('category', $cat)->count();
+                }
 
-            $directGrandTotal = $records->count();
+                $directGrandTotal = $records->count();
 
-            $genderCounts = [];
-            $genderDirectTotal = 0;
-            foreach ($genders as $gender) {
-            foreach ($categories as $cat) {
-            if ($cat === 'Direct') {
-            $genderCounts[$gender][$cat] = $records
-            ->where('gender', $gender)
-            ->whereNotIn('category', $indirectCategories)
-            ->count();
-            } else {
-            $genderCounts[$gender][$cat] = $records
-            ->where('gender', $gender)
-            ->where('category', $cat)
-            ->count();
-            }
-            }
-            $genderCounts[$gender]['Total'] = $records
-            ->where('gender', $gender)
-            ->whereIn('category', $categories)
-            ->count();
-            $genderDirectTotal += $genderCounts[$gender]['Total'];
-            }
+                $genderCounts = [];
+                $genderDirectTotal = 0;
+                foreach ($genders as $gender) {
+                    foreach ($categories as $cat) {
+                        if ($cat === 'Direct') {
+                            $genderCounts[$gender][$cat] = $records
+                                ->where('gender', $gender)
+                                ->whereNotIn('category', $indirectCategories)
+                                ->count();
+                        } else {
+                            $genderCounts[$gender][$cat] = $records
+                                ->where('gender', $gender)
+                                ->where('category', $cat)
+                                ->count();
+                        }
+                    }
+                    $genderCounts[$gender]['Total'] = $records
+                        ->where('gender', $gender)
+                        ->whereIn('category', $categories)
+                        ->count();
+                    $genderDirectTotal += $genderCounts[$gender]['Total'];
+                }
 
-            $statusCounts = [];
-            $statusDirectTotal = 0;
-            foreach ($statuses as $status) {
-            foreach ($categories as $cat) {
-            if ($cat === 'Direct') {
-            $statusCounts[$status][$cat] = $records
-            ->where('status', $status)
-            ->whereNotIn('category', $indirectCategories)
-            ->count();
-            } else {
-            $statusCounts[$status][$cat] = $records
-            ->where('status', $status)
-            ->where('category', $cat)
-            ->count();
-            }
-            }
-            $statusCounts[$status]['Total'] = $records
-            ->where('status', $status)
-            ->whereIn('category', $categories)
-            ->count();
-            $statusDirectTotal += $statusCounts[$status]['Total'];
-            }
+                $statusCounts = [];
+                $statusDirectTotal = 0;
+                foreach ($statuses as $status) {
+                    foreach ($categories as $cat) {
+                        if ($cat === 'Direct') {
+                            $statusCounts[$status][$cat] = $records
+                                ->where('status', $status)
+                                ->whereNotIn('category', $indirectCategories)
+                                ->count();
+                        } else {
+                            $statusCounts[$status][$cat] = $records
+                                ->where('status', $status)
+                                ->where('category', $cat)
+                                ->count();
+                        }
+                    }
+                    $statusCounts[$status]['Total'] = $records
+                        ->where('status', $status)
+                        ->whereIn('category', $categories)
+                        ->count();
+                    $statusDirectTotal += $statusCounts[$status]['Total'];
+                }
 
-            $residenceCounts = [];
-            $residenceDirectTotal = 0;
-            foreach ($residences as $res) {
-            foreach ($categories as $cat) {
-            if ($cat === 'Direct') {
-            $residenceCounts[$res][$cat] = $records
-            ->where('domicile', $res)
-            ->whereNotIn('category', $indirectCategories)
-            ->count();
-            } else {
-            $residenceCounts[$res][$cat] = $records
-            ->where('domicile', $res)
-            ->where('category', $cat)
-            ->count();
-            }
-            }
-            $residenceCounts[$res]['Total'] = $records
-            ->where('domicile', $res)
-            ->whereIn('category', $categories)
-            ->count();
-            $residenceDirectTotal += $residenceCounts[$res]['Total'];
-            }
+                $residenceCounts = [];
+                $residenceDirectTotal = 0;
+                foreach ($residences as $res) {
+                    foreach ($categories as $cat) {
+                        if ($cat === 'Direct') {
+                            $residenceCounts[$res][$cat] = $records
+                                ->where('domicile', $res)
+                                ->whereNotIn('category', $indirectCategories)
+                                ->count();
+                        } else {
+                            $residenceCounts[$res][$cat] = $records
+                                ->where('domicile', $res)
+                                ->where('category', $cat)
+                                ->count();
+                        }
+                    }
+                    $residenceCounts[$res]['Total'] = $records
+                        ->where('domicile', $res)
+                        ->whereIn('category', $categories)
+                        ->count();
+                    $residenceDirectTotal += $residenceCounts[$res]['Total'];
+                }
             @endphp
 
             {{-- BY DIRECT CATEGORY --}}
             <tr>
                 <td rowspan="{{ count($directs) + 1 }}" class="text-center">BY DIRECT CATEGORY</td>
                 @foreach ($directs as $index => $direct)
-                @if ($index > 0)
+                    @if ($index > 0)
             <tr>
                 @endif
                 <td>{{ $direct }}</td>
                 <td class="text-center">{{ $directCounts[$direct] }}</td>
                 @foreach ($indirectCategories as $cat)
-                <td class="text-center"></td>
+                    <td class="text-center"></td>
                 @endforeach
                 <td class="text-center"></td>
             </tr>
@@ -281,7 +289,7 @@
                 <td>TOTAL</td>
                 <td class="text-center">{{ collect($directs)->sum(fn($d) => $directCounts[$d]) }}</td>
                 @foreach ($indirectCategories as $cat)
-                <td class="text-center"></td>
+                    <td class="text-center"></td>
                 @endforeach
                 <td class="text-center"></td>
             </tr>
@@ -290,12 +298,12 @@
             <tr>
                 <td rowspan="{{ count($residences) + 1 }}" class="text-center">BY RESIDENCE</td>
                 @foreach ($residences as $index => $res)
-                @if ($index > 0)
+                    @if ($index > 0)
             <tr>
                 @endif
                 <td>{{ $res }}</td>
                 @foreach ($categories as $cat)
-                <td class="text-center">{{ $residenceCounts[$res][$cat] }}</td>
+                    <td class="text-center">{{ $residenceCounts[$res][$cat] }}</td>
                 @endforeach
                 <td class="text-center">{{ $residenceCounts[$res]['Total'] }}</td>
             </tr>
@@ -303,15 +311,15 @@
             <tr>
                 <td>TOTAL</td>
                 @foreach ($categories as $cat)
-                <td class="text-center">
-                    @php
-                    $total = 0;
-                    foreach ($residences as $res) {
-                    $total += $residenceCounts[$res][$cat];
-                    }
-                    @endphp
-                    {{ $total }}
-                </td>
+                    <td class="text-center">
+                        @php
+                            $total = 0;
+                            foreach ($residences as $res) {
+                                $total += $residenceCounts[$res][$cat];
+                            }
+                        @endphp
+                        {{ $total }}
+                    </td>
                 @endforeach
                 <td class="text-center">{{ $residenceDirectTotal }}</td>
             </tr>
@@ -320,12 +328,12 @@
             <tr>
                 <td rowspan="{{ count($genders) + 1 }}" class="text-center">BY GENDER</td>
                 @foreach ($genders as $index => $gender)
-                @if ($index > 0)
+                    @if ($index > 0)
             <tr>
                 @endif
                 <td>{{ $gender }}</td>
                 @foreach ($categories as $cat)
-                <td class="text-center">{{ $genderCounts[$gender][$cat] }}</td>
+                    <td class="text-center">{{ $genderCounts[$gender][$cat] }}</td>
                 @endforeach
                 <td class="text-center">{{ $genderCounts[$gender]['Total'] }}</td>
             </tr>
@@ -333,7 +341,7 @@
             <tr>
                 <td>TOTAL</td>
                 @foreach ($categories as $cat)
-                <td class="text-center">{{ $genderCounts['Male'][$cat] + $genderCounts['Female'][$cat] }}</td>
+                    <td class="text-center">{{ $genderCounts['Male'][$cat] + $genderCounts['Female'][$cat] }}</td>
                 @endforeach
                 <td class="text-center">{{ $genderDirectTotal }}</td>
             </tr>
@@ -342,12 +350,12 @@
             <tr>
                 <td rowspan="{{ count($statuses) + 1 }}" class="text-center">BY EMPLOYMENT STATUS</td>
                 @foreach ($statuses as $index => $status)
-                @if ($index > 0)
+                    @if ($index > 0)
             <tr>
                 @endif
                 <td>{{ $status }}</td>
                 @foreach ($categories as $cat)
-                <td class="text-center">{{ $statusCounts[$status][$cat] }}</td>
+                    <td class="text-center">{{ $statusCounts[$status][$cat] }}</td>
                 @endforeach
                 <td class="text-center">{{ $statusCounts[$status]['Total'] }}</td>
             </tr>
@@ -355,15 +363,15 @@
             <tr>
                 <td>TOTAL</td>
                 @foreach ($categories as $cat)
-                <td class="text-center">
-                    @php
-                    $total = 0;
-                    foreach ($statuses as $status) {
-                    $total += $statusCounts[$status][$cat];
-                    }
-                    @endphp
-                    {{ $total }}
-                </td>
+                    <td class="text-center">
+                        @php
+                            $total = 0;
+                            foreach ($statuses as $status) {
+                                $total += $statusCounts[$status][$cat];
+                            }
+                        @endphp
+                        {{ $total }}
+                    </td>
                 @endforeach
                 <td class="text-center">{{ $statusDirectTotal }}</td>
             </tr>
@@ -378,7 +386,7 @@
         </div>
         <table style="text-align: center">
             <tr>
-                <td style="width: 25%; padding: 6px; font-size: 14px">{{ auth()->user()->name }}</td>
+                <td style="width: 25%; padding: 6px; font-size: 14px">{{ $title }}</td>
                 <td style="width: 25%; padding: 6px; font-size: 14px">
                     {{ ucwords(str_replace('_', ' ', auth()->user()->user_type)) }}
                 </td>
@@ -395,7 +403,7 @@
 
         <div class="notes-section">
             <strong>Notes:</strong>
-            <ol style="font-size: 11px">
+            <ol style="font-size: 10px">
                 <li>To be submitted monthly on or before the 10th day of each month</li>
                 <li>Include employees employed through Manpower Services i.e., Security Guards, Janitorials,
                     Construction, Ground Maintenance, etc.</li>

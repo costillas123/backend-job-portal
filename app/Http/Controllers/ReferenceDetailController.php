@@ -68,11 +68,13 @@ class ReferenceDetailController extends Controller
             return response()->json(['message' => 'Invalid file type'], 400);
         }
 
-        if ($request->user()->user_type === 'employer') {
-            $filePath = public_path('template/reference_emp.xlsx');
-        } else {
-            $filePath = public_path('template/reference_man.xlsx');
-        }
+        $filePath = public_path('template/reference_emp.xlsx');
+
+        // if ($request->user()->user_type === 'employer') {
+        //     $filePath = public_path('template/reference_emp.xlsx');
+        // } else {
+        //     $filePath = public_path('template/reference_man.xlsx');
+        // }
 
         if (!file_exists($filePath)) {
             return response()->json(['message' => 'File not found'], 404);
@@ -93,8 +95,18 @@ class ReferenceDetailController extends Controller
         try {
             $reference = Reference::where('ref_code', $request->input('code'))->first();
 
+            $user = $request->user();
+
+            if ($user->user_type == 'employer') {
+
+                $empName = $user->name;
+            } else {
+
+                $empName = $reference?->user->name ?? null;
+            }
+
             // Initialize import
-            $import = new ReferencesImport($request->user(), $reference->id);
+            $import = new ReferencesImport($request->user(), $reference->id, $empName);
 
             // Import the Excel file
             Excel::import($import, $request->file('file'));

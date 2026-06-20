@@ -99,10 +99,18 @@
             font-weight: bold;
             font-size: 12px;
         }
+
+        .absolute-title {
+            position: absolute;
+            top: -20px;
+            right: 10px;
+            font-size: 12px;
+        }
     </style>
 </head>
 
 <body>
+    <div class="absolute-title">{{ $filters['type'] }}</div>
 
     <!-- HEADER -->
     <div class="header">
@@ -116,68 +124,68 @@
     </div>
 
     @php
-    $records = collect($records->details ?? [])
-    ->filter(function ($item) {
-    return $item->nationality !== 'Filipino';
-    })
-    ->values();
+        $records = collect($records->details ?? [])
+            ->filter(function ($item) {
+                return $item->nationality !== 'Filipino';
+            })
+            ->values();
 
-    /**
-    * ✅ DB VALUE (label) => PDF CODE
-    */
-    $nationalityMap = [
-    'American' => 'AM',
-    'Australian' => 'AUS',
-    'British' => 'BRIT',
-    'Canadian' => 'CAN',
-    'Chinese' => 'CHI',
-    'Indian' => 'IND',
-    'Israeli' => 'ISR',
-    'Japanese' => 'JAP',
-    'Korean' => 'KOR',
-    'Malaysian' => 'MAL',
-    'Russian' => 'RUS',
-    'Singaporean' => 'SING',
-    'Taiwanese' => 'TAI',
-    'Ukrainian' => 'UKR',
-    'Others' => 'OTHERS',
-    ];
+        /**
+         * ✅ DB VALUE (label) => PDF CODE
+         */
+        $nationalityMap = [
+            'American' => 'AM',
+            'Australian' => 'AUS',
+            'British' => 'BRIT',
+            'Canadian' => 'CAN',
+            'Chinese' => 'CHI',
+            'Indian' => 'IND',
+            'Israeli' => 'ISR',
+            'Japanese' => 'JAP',
+            'Korean' => 'KOR',
+            'Malaysian' => 'MAL',
+            'Russian' => 'RUS',
+            'Singaporean' => 'SING',
+            'Taiwanese' => 'TAI',
+            'Ukrainian' => 'UKR',
+            'Others' => 'OTHERS',
+        ];
 
-    /**
-    * ✅ Reverse: CODE => LABEL (for looping)
-    */
-    $nationalities = array_flip($nationalityMap);
+        /**
+         * ✅ Reverse: CODE => LABEL (for looping)
+         */
+        $nationalities = array_flip($nationalityMap);
 
-    /**
-    * ✅ Normalize DB values
-    */
-    $records = $records->map(function ($item) use ($nationalityMap) {
-    if (!isset($nationalityMap[$item->nationality])) {
-    $item->nationality = 'Others';
-    }
-    return $item;
-    });
+        /**
+         * ✅ Normalize DB values
+         */
+        $records = $records->map(function ($item) use ($nationalityMap) {
+            if (!isset($nationalityMap[$item->nationality])) {
+                $item->nationality = 'Others';
+            }
+            return $item;
+        });
 
-    $directs = ['AVP and up', 'Managerial', 'Supervisory', 'Rank and File'];
-    $genders = ['Male', 'Female'];
-    $residences = ['Angeles', 'Mabalacat', 'Porac', 'Other Pampanga', 'Bamban', 'Capas', 'Other Tarlac', 'Others'];
+        $directs = ['AVP and up', 'Managerial', 'Supervisory', 'Rank and File'];
+        $genders = ['Male', 'Female'];
+        $residences = ['Angeles', 'Mabalacat', 'Porac', 'Other Pampanga', 'Bamban', 'Capas', 'Other Tarlac', 'Others'];
 
-    // Initialize
-    foreach ($nationalities as $code => $label) {
-    foreach ($directs as $d) {
-    $directCounts[$code][$d] = $records->where('nationality', $label)->where('category', $d)->count();
-    }
+        // Initialize
+        foreach ($nationalities as $code => $label) {
+            foreach ($directs as $d) {
+                $directCounts[$code][$d] = $records->where('nationality', $label)->where('category', $d)->count();
+            }
 
-    foreach ($genders as $g) {
-    $genderCounts[$code][$g] = $records->where('nationality', $label)->where('gender', $g)->count();
-    }
+            foreach ($genders as $g) {
+                $genderCounts[$code][$g] = $records->where('nationality', $label)->where('gender', $g)->count();
+            }
 
-    foreach ($residences as $r) {
-    $residenceCounts[$code][$r] = $records->where('nationality', $label)->where('domicile', $r)->count();
-    }
+            foreach ($residences as $r) {
+                $residenceCounts[$code][$r] = $records->where('nationality', $label)->where('domicile', $r)->count();
+            }
 
-    $totals[$code] = $records->where('nationality', $label)->count();
-    }
+            $totals[$code] = $records->where('nationality', $label)->count();
+        }
     @endphp
 
     <table>
@@ -192,7 +200,7 @@
             </tr>
             <tr>
                 @foreach ($nationalities as $code => $label)
-                <td class="text-center" style="width:5%;">{{ $code }}</td>
+                    <td class="text-center" style="width:5%;">{{ $code }}</td>
                 @endforeach
             </tr>
 
@@ -201,23 +209,23 @@
                 <td rowspan="{{ count($directs) + 1 }}">BY NATURE OF WORK</td>
                 <td>{{ $directs[0] }}</td>
                 @foreach ($nationalities as $code => $label)
-                <td class="text-center">{{ $directCounts[$code][$directs[0]] }}</td>
+                    <td class="text-center">{{ $directCounts[$code][$directs[0]] }}</td>
                 @endforeach
             </tr>
 
             @foreach (array_slice($directs, 1) as $d)
-            <tr>
-                <td>{{ $d }}</td>
-                @foreach ($nationalities as $code => $label)
-                <td class="text-center">{{ $directCounts[$code][$d] }}</td>
-                @endforeach
-            </tr>
+                <tr>
+                    <td>{{ $d }}</td>
+                    @foreach ($nationalities as $code => $label)
+                        <td class="text-center">{{ $directCounts[$code][$d] }}</td>
+                    @endforeach
+                </tr>
             @endforeach
 
             <tr>
                 <td>TOTAL</td>
                 @foreach ($nationalities as $code => $label)
-                <td class="text-center">{{ $totals[$code] }}</td>
+                    <td class="text-center">{{ $totals[$code] }}</td>
                 @endforeach
             </tr>
 
@@ -226,23 +234,23 @@
                 <td rowspan="{{ count($residences) + 1 }}">BY RESIDENCE</td>
                 <td>{{ $residences[0] }}</td>
                 @foreach ($nationalities as $code => $label)
-                <td class="text-center">{{ $residenceCounts[$code][$residences[0]] }}</td>
+                    <td class="text-center">{{ $residenceCounts[$code][$residences[0]] }}</td>
                 @endforeach
             </tr>
 
             @foreach (array_slice($residences, 1) as $r)
-            <tr>
-                <td>{{ $r }}</td>
-                @foreach ($nationalities as $code => $label)
-                <td class="text-center">{{ $residenceCounts[$code][$r] }}</td>
-                @endforeach
-            </tr>
+                <tr>
+                    <td>{{ $r }}</td>
+                    @foreach ($nationalities as $code => $label)
+                        <td class="text-center">{{ $residenceCounts[$code][$r] }}</td>
+                    @endforeach
+                </tr>
             @endforeach
 
             <tr>
                 <td>TOTAL</td>
                 @foreach ($nationalities as $code => $label)
-                <td class="text-center">{{ $totals[$code] }}</td>
+                    <td class="text-center">{{ $totals[$code] }}</td>
                 @endforeach
             </tr>
 
@@ -251,23 +259,23 @@
                 <td rowspan="{{ count($genders) + 1 }}">BY GENDER</td>
                 <td>{{ $genders[0] }}</td>
                 @foreach ($nationalities as $code => $label)
-                <td class="text-center">{{ $genderCounts[$code][$genders[0]] }}</td>
+                    <td class="text-center">{{ $genderCounts[$code][$genders[0]] }}</td>
                 @endforeach
             </tr>
 
             @foreach (array_slice($genders, 1) as $g)
-            <tr>
-                <td>{{ $g }}</td>
-                @foreach ($nationalities as $code => $label)
-                <td class="text-center">{{ $genderCounts[$code][$g] }}</td>
-                @endforeach
-            </tr>
+                <tr>
+                    <td>{{ $g }}</td>
+                    @foreach ($nationalities as $code => $label)
+                        <td class="text-center">{{ $genderCounts[$code][$g] }}</td>
+                    @endforeach
+                </tr>
             @endforeach
 
             <tr>
                 <td>TOTAL</td>
                 @foreach ($nationalities as $code => $label)
-                <td class="text-center">{{ $totals[$code] }}</td>
+                    <td class="text-center">{{ $totals[$code] }}</td>
                 @endforeach
             </tr>
 
@@ -283,7 +291,7 @@
 
         <table style="text-align:center">
             <tr>
-                <td style="width:25%">{{ auth()->user()->name }}</td>
+                <td style="width:25%">{{ $title }}</td>
                 <td style="width:25%">{{ ucwords(str_replace('_', ' ', auth()->user()->user_type)) }}</td>
                 <td style="width:25%">{{ auth()->user()->telephone }}</td>
                 <td style="width:25%">{{ now()->format('M d, Y') }}</td>
@@ -308,11 +316,11 @@
             <strong>Legend:</strong>
             <table>
                 @foreach (array_chunk($nationalities, 4, true) as $chunk)
-                <tr>
-                    @foreach ($chunk as $code => $label)
-                    <td style="border:none">{{ $code }} - {{ $label }}</td>
-                    @endforeach
-                </tr>
+                    <tr>
+                        @foreach ($chunk as $code => $label)
+                            <td style="border:none">{{ $code }} - {{ $label }}</td>
+                        @endforeach
+                    </tr>
                 @endforeach
             </table>
         </div>

@@ -391,7 +391,14 @@ class ReportController extends Controller
         $employerIds = $filters['employer_ids'] ?? [];
         $month = $filters['month'] ?? null;
         $year = $filters['year'] ?? null;
+        $type = $filters['type'] ?? 'referred';
 
+        /**
+         * Collect generated files first
+         */
+        $files = [];
+
+        // Get all jobs grouped by employer
         $jobs = JobVacancy::with([
             'jobApplications.jobSeeker.user',
             'employer.user',
@@ -407,27 +414,27 @@ class ReportController extends Controller
             ->get()
             ->groupBy(fn($job) => $job->employer->user->id ?? null);
 
-        $zipDir = storage_path('app/public/zip');
-
-        if (!file_exists($zipDir)) {
-            mkdir($zipDir, 0777, true);
-        }
-
-        $zipFileName = $filters['type'] . '-' . now()->format('Ymd_His') . '.zip';
-        $zipPath = $zipDir . '/' . $zipFileName;
-
-        $zip = new \ZipArchive;
-        if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
-            throw new \Exception("Cannot create zip file");
-        }
-
         foreach ($jobs as $employerId => $employerJobs) {
 
             $employer = $employerJobs->first()->employer->user ?? null;
             $job = $employerJobs->first() ?? null;
+
             if (!$employer) continue;
 
-            // Pass all jobs for this employer to the PDF
+            /**
+             * Clean filename
+             */
+            $name = preg_replace('/[^A-Za-z0-9\-]/', '-', $employer->name);
+            $empId = str_pad($employer->id, 6, '0', STR_PAD_LEFT);
+
+            $filename = "{$empId}-{$name}";
+            if ($month && $year) {
+                $filename .= "-{$year}_{$month}";
+            }
+
+            /**
+             * Generate PDF
+             */
             $pdf = Pdf::loadView("reports.emp-07", [
                 'job' => $job ?? '-',
                 'generated_at' => now()->format('d F Y'),
@@ -435,13 +442,62 @@ class ReportController extends Controller
                 'filters' => $filters
             ])->setPaper('a4', 'portrait');
 
-            $name = preg_replace('/[^A-Za-z0-9\-]/', '-', $employer->name);
-            $empId = str_pad($employer->id, 6, '0', STR_PAD_LEFT);
+            $files[] = [
+                'name' => "{$filename}.pdf",
+                'content' => $pdf->output()
+            ];
 
-            $zip->addFromString(
-                "{$empId}-{$name}.pdf",
-                $pdf->output()
-            );
+            unset($pdf);
+        }
+
+        /**
+         * No valid files
+         */
+        if (count($files) === 0) {
+            return response()->json([
+                'message' => 'No reports generated'
+            ], 404);
+        }
+
+        /**
+         * ✅ IF ONLY ONE FILE → DO NOT ZIP
+         */
+        if (count($files) === 1) {
+
+            $file = $files[0];
+
+            $dir = storage_path('app/public/zip');
+            if (!file_exists($dir)) {
+                mkdir($dir, 0777, true);
+            }
+
+            $path = $dir . '/' . $file['name'];
+            file_put_contents($path, $file['content']);
+
+            return response()->json([
+                'download' => asset("storage/zip/{$file['name']}")
+            ]);
+        }
+
+        /**
+         * ✅ MULTIPLE FILES → CREATE ZIP
+         */
+        $zipDir = storage_path('app/public/zip');
+        if (!file_exists($zipDir)) {
+            mkdir($zipDir, 0777, true);
+        }
+
+        $zipFileName = $type . '-' . now()->format('Ymd_His') . '.zip';
+        $zipPath = $zipDir . '/' . $zipFileName;
+
+        $zip = new \ZipArchive;
+
+        if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+            throw new \Exception("Cannot create zip file");
+        }
+
+        foreach ($files as $file) {
+            $zip->addFromString($file['name'], $file['content']);
         }
 
         $zip->close();

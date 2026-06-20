@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{Reference, Employer};
+use App\Models\{Reference, ManpowerAssigned, User};
 use Illuminate\Http\Request;
 use App\Traits\ApiResponseTrait;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +26,7 @@ class ReferenceController extends Controller
 
             $user = $request->user();
 
-            $query = Reference::with('details');
+            $query = Reference::with(['details', 'createdBy']);
 
             if ($search) {
                 $query->where(function ($q) use ($search) {
@@ -38,18 +38,19 @@ class ReferenceController extends Controller
                 });
             }
 
+            $locators = [];
+
             if ($user->user_type === 'employer') {
                 $query->where('user_id', $user->id);
             }
 
             if ($user->user_type === 'manpower_agency') {
-                // Find employers with matching locator number
-                $employerUserIds = Employer::where('locator_number', $user->manpowerAgency->license_number)
-                    ->pluck('user_id')
-                    ->toArray();
+                $employerUserIds = ManpowerAssigned::where('manpower_user_id', $user->id)
+                    ->pluck('employer_user_id');
 
-                // Include the manpower agency user and all matching employer user IDs
-                $query->whereIn('user_id', array_merge([$user->id], $employerUserIds));
+                $query->whereIn('user_id', $employerUserIds);
+
+                $locators = User::whereIn('id', $employerUserIds)->get();
             }
 
             if ($month) {
@@ -64,13 +65,18 @@ class ReferenceController extends Controller
                 $query->where('status', $status);
             }
 
-            $data = $query->with('user:id,name,email')->latest()->paginate($perPage);
+            $data = $query->with('user:id,name,email')->paginate($perPage);
+
+            $data->setCollection(
+                $data->getCollection()->sortBy('user.name')->values()
+            );
 
             $data = ([
                 'items' => $data->items(),
                 'total' => $data->total(),
                 'per_page' => $data->perPage(),
                 'current_page' => $data->currentPage(),
+                'locators' => $locators,
             ]);
 
             return $this->successResponse($data, 'References fetched successfully', 200);
@@ -99,6 +105,7 @@ class ReferenceController extends Controller
                 'month' => 'required|string|max:50',
                 'year'  => 'required|integer',
                 'file'  => 'nullable|max:10240',
+                'locator_id'  => 'nullable|string',
             ]);
 
             $user = $request->user();
@@ -115,19 +122,35 @@ class ReferenceController extends Controller
                 ], 422);
             }
 
+            if ($user->user_type == 'employer') {
+
+                $userId = $user->id;
+                $createdBy = $user->id;
+                $empName = $user->name;
+            } else {
+
+                $userId = $validated['locator_id'];
+
+                $createdBy = $user->id;
+
+                $locatorName = User::find($validated['locator_id'] ?? null);
+                $empName = $locatorName?->name;
+            }
+
             $reference = Reference::create([
-                'user_id'  => $user->id,
-                'title'    => $validated['title'],
-                'month'    => $validated['month'],
-                'year'     => $validated['year'],
-                'ref_code' => $this->generateUniqueRefCode(),
+                'user_id'     => $userId,
+                'created_by'  => $createdBy,
+                'title'       => $validated['title'],
+                'month'       => $validated['month'],
+                'year'        => $validated['year'],
+                'ref_code'    => $this->generateUniqueRefCode(),
             ]);
 
             $import = null;
             $importData = null;
 
             if ($request->hasFile('file')) {
-                $import = new ReferencesImport($user, $reference->id);
+                $import = new ReferencesImport($user, $reference->id, $empName);
                 Excel::import($import, $request->file('file'));
 
                 $importData = [

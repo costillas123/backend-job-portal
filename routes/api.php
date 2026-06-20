@@ -33,6 +33,7 @@ use App\Http\Controllers\Setting\{
     AttributeController,
     CategoryController,
     SubCategoryController,
+    UserManualController,
     ContactController,
 };
 
@@ -83,6 +84,7 @@ Route::middleware(['system.key', 'throttle:100,1'])->group(function () {
         Route::apiResource('setting-sub-attributes', SubAttributeController::class);
         Route::apiResource('setting-categories', CategoryController::class);
         Route::apiResource('setting-sub-categories', SubCategoryController::class);
+        Route::apiResource('setting-user-manuals', UserManualController::class);
 
         // Profile Menus
         Route::apiResource('messages', MessageController::class);
@@ -105,6 +107,7 @@ Route::middleware(['system.key', 'throttle:100,1'])->group(function () {
 
         Route::post('/check-employer-report', [ReportController::class, 'checkEmployerReport']);
         Route::post('/generate-employer-report', [ReportController::class, 'generateEmployerReport']);
+        Route::get('locator-list', [FetchServiceController::class, 'locatorList']);
     });
 
     // Public Reqeusts ======================================================
@@ -121,6 +124,7 @@ Route::middleware(['system.key', 'throttle:100,1'])->group(function () {
     Route::get('view-jobs', [FetchServiceController::class, 'viewJobs']);
     Route::get('view-job-details/{code}', [FetchServiceController::class, 'viewJobDetails']);
     Route::get('view-categories', [FetchServiceController::class, 'viewCategories']);
+    Route::get('user-manual-list', [FetchServiceController::class, 'userManualList']);
 });
 
 

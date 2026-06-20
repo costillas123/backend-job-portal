@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\{User, Employer, ManpowerAgency, PesoSchool};
+use App\Models\{User, Employer, ManpowerAgency, PesoSchool, ManpowerAssigned};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
@@ -56,14 +56,17 @@ class UserController extends Controller
             }
 
             // 🧩 Include relations
-            $query->with(['jobSeeker', 'employer', 'socialMedias', 'manpowerAgency']);
+            $query->with([
+                'jobSeeker',
+                'employer',
+                'socialMedias',
+                'manpowerAgency',
+                'assignedEmployers'
+            ]);
 
             // Sorting
-            if ($type === 'employer') {
-                $query->orderBy('name', 'asc'); // Alphabetical
-            } else {
-                $query->latest(); // created_at DESC
-            }
+            $query->orderBy('name', 'asc');
+
 
             // ⬇️ Paginate
             $users = $query->latest()->paginate($perPage);
@@ -137,9 +140,11 @@ class UserController extends Controller
                 'industry' => 'nullable|required_if:user_type,employer|string|max:255',
                 'sub_industry' => 'nullable|required_if:user_type,employer|string|max:255',
 
-                'assign_locator_number' => 'nullable|string|max:100',
+                'assign_locator_numbers' => 'nullable|array',
+                'assign_locator_numbers.*' => 'exists:users,id',
                 'service_type' => 'nullable|string|max:255',
-                'years_in_operation' => 'nullable|string|max:50',
+                'license_number' => 'nullable|string|max:255',
+                'years_in_operation' => 'nullable|integer',
             ]);
 
             // Start database transaction
@@ -169,25 +174,35 @@ class UserController extends Controller
             }
 
             if ($validated['user_type'] === 'manpower_agency') {
-                ManpowerAgency::create([
-                    'user_id' => $user->id,
-                    'license_number' => $validated['assign_locator_number'] ?? null,
-                    'services_offered' => $validated['service_type'] ?? null,
-                    'years_in_operation' => $validated['years_in_operation'] ?? null,
-                ]);
+                ManpowerAgency::updateOrCreate(
+                    ['user_id' => $user->id],
+                    [
+                        'license_number'      =>  $validated['license_number'] ?? null,
+                        'services_offered'    => $validated['service_type'] ?? null,
+                        'years_in_operation'  => $validated['years_in_operation'] ?? null,
+                    ]
+                );
+
+                // Remove previous assignments
+                ManpowerAssigned::where('manpower_user_id', $user->id)->delete();
+
+                // Insert newly selected employers
+                if (!empty($validated['assign_locator_numbers'])) {
+
+                    $rows = collect($validated['assign_locator_numbers'])
+                        ->unique()
+                        ->map(fn($employerId) => [
+                            'manpower_user_id' => $user->id,
+                            'employer_user_id' => $employerId,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ])
+                        ->toArray();
+
+                    ManpowerAssigned::insert($rows);
+                }
             }
 
-            if ($validated['user_type'] === 'peso_school') {
-                PesoSchool::create([
-                    'user_id' => $user->id,
-                ]);
-            }
-
-            if ($validated['user_type'] === 'manpower_agency') {
-                ManpowerAgency::create([
-                    'user_id' => $user->id,
-                ]);
-            }
 
             // Commit transaction
             DB::commit();
@@ -235,8 +250,10 @@ class UserController extends Controller
                 'industry' => 'nullable|required_if:user_type,employer|string|max:255',
                 'sub_industry' => 'nullable|required_if:user_type,employer|string|max:255',
 
-                'assign_locator_number' => 'nullable|string|max:100',
+                'assign_locator_numbers' => 'nullable|array',
+                'assign_locator_numbers.*' => 'exists:users,id',
                 'service_type' => 'nullable|string|max:255',
+                'license_number' => 'nullable|string|max:255',
                 'years_in_operation' => 'nullable|integer',
             ]);
 
@@ -271,14 +288,34 @@ class UserController extends Controller
             }
 
             if ($validated['user_type'] === 'manpower_agency') {
+
                 ManpowerAgency::updateOrCreate(
                     ['user_id' => $user->id],
                     [
-                        'license_number' => $validated['assign_locator_number'] ?? null,
-                        'services_offered' => $validated['service_type'] ?? null,
-                        'years_in_operation' => $validated['years_in_operation'] ?? null,
+                        'license_number'      =>  $validated['license_number'] ?? null,
+                        'services_offered'    => $validated['service_type'] ?? null,
+                        'years_in_operation'  => $validated['years_in_operation'] ?? null,
                     ]
                 );
+
+                // Remove previous assignments
+                ManpowerAssigned::where('manpower_user_id', $user->id)->delete();
+
+                // Insert newly selected employers
+                if (!empty($validated['assign_locator_numbers'])) {
+
+                    $rows = collect($validated['assign_locator_numbers'])
+                        ->unique()
+                        ->map(fn($employerId) => [
+                            'manpower_user_id' => $user->id,
+                            'employer_user_id' => $employerId,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ])
+                        ->toArray();
+
+                    ManpowerAssigned::insert($rows);
+                }
             }
 
             // ✅ Use your custom AppHelper logger

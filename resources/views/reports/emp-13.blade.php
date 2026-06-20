@@ -97,10 +97,18 @@
             margin: 20px 25px;
             counter-increment: page;
         }
+
+        .absolute-title {
+            position: absolute;
+            top: -5px;
+            right: 10px;
+            font-size: 12px;
+        }
     </style>
 </head>
 
 <body>
+    <div class="absolute-title">{{ $filters['type'] }}</div>
 
     <!-- HEADER -->
     <div class="header">

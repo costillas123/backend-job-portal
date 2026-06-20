@@ -163,4 +163,9 @@ class User extends Authenticatable
     {
         return $this->hasOne(ManpowerAgency::class);
     }
+
+    public function assignedEmployers()
+    {
+        return $this->hasMany(ManpowerAssigned::class, 'manpower_user_id');
+    }
 }

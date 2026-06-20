@@ -38,7 +38,7 @@
             border-collapse: collapse;
             margin-bottom: 20px;
             margin-top: 20px;
-            font-size: 9px;
+            font-size: 8px;
             table-layout: fixed;
         }
 
@@ -98,10 +98,18 @@
             font-size: 9px;
             margin-top: 10px;
         }
+
+        .absolute-title {
+            position: absolute;
+            top: -20px;
+            right: 10px;
+            font-size: 12px;
+        }
     </style>
 </head>
 
 <body>
+    <div class="absolute-title">{{ $filters['type'] }}</div>
 
     @foreach ($records as $job)
         <!-- HEADER -->
@@ -125,7 +133,7 @@
                     <th style="width: 5%;" rowspan="2">NO.</th>
                     <th style="width: 25%;" rowspan="2">NAME</th>
                     <th style="width: 20%;" rowspan="2">CONTACT NOS.<br>(Telephone/Mobile Phone)</th>
-                    <th style="width: 25%;" rowspan="2">EDUCATION / ATTACHMENT / COURSE</th>
+                    <th style="width: 20%;" rowspan="2">EDUCATION / ATTACHMENT / COURSE</th>
                     <th colspan="4" style="width: 30%;">REMARKS (to be filled-out by CFZ Locator)</th>
                 </tr>
                 <tr>

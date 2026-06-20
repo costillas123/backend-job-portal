@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\{Attribute, Category, JobVacancy, Employer, JobApplication, JobFavorite, Notification};
+use App\Models\{Attribute, Category, UserManual, User, JobVacancy, Employer, JobApplication, JobFavorite, Notification};
 use App\Helpers\AppHelper;
 use Carbon\Carbon;
 use App\Traits\ApiResponseTrait;
@@ -387,6 +387,47 @@ class FetchServiceController extends Controller
             return $this->successResponse($data, 'Data retrieved successfully', 200);
         } catch (\Exception $e) {
             return $this->errorResponse('Failed to fetch data', 500, $e->getMessage());
+        }
+    }
+
+    public function userManualList()
+    {
+        try {
+            $data = UserManual::get();
+            return response()->json($data, 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to process. ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function locatorList()
+    {
+        try {
+            $data = User::with('employer:id,user_id,locator_number')
+                ->where('user_type', 'employer')
+                ->select('id', 'name')
+                ->get()
+                ->map(function ($user) {
+                    return [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'locator_number' => $user->employer?->locator_number,
+                        'display_name' => $user->name . ($user->employer?->locator_number ? ' (' . $user->employer->locator_number . ')' : ''),
+                    ];
+                });
+
+            return response()->json([
+                'success' => true,
+                'data' => $data,
+                'message' => 'Employer list fetched successfully'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to process. ' . $e->getMessage(),
+            ], 500);
         }
     }
 }

@@ -19,28 +19,24 @@ class ReferencesImport implements ToModel, WithHeadingRow, WithValidation, Skips
     private $rowCount = 0;
     private $successCount = 0;
     private $user;
+    private $empName;
 
-    public function __construct($user, $referenceId)
+    public function __construct($user, $referenceId, $empName)
     {
         $this->user = $user;
         $this->referenceId = $referenceId;
+        $this->empName = $empName;
     }
 
     public function model(array $row)
     {
         $this->rowCount++;
 
-        if ($this->user->user_type === 'employer') {
-            $companyName = $this->user->name;
-        } else {
-            $companyName = $row['company_name'] ?? null;
-        }
-
         $this->successCount++;
 
         return new ReferenceDetail([
             'reference_id' => $this->referenceId,
-            'company' => $companyName,
+            'company' => $this->empName,
             'name' => $row['name'] ?? null,
             'category' => $row['category'] ?? null,
             'position' => $row['position'] ?? null,
