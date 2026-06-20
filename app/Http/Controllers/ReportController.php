@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\{User, Reference, JobVacancy, Employer, JobApplication};
+use App\Models\{User, Reference, JobVacancy, Employer, JobApplication, ManpowerAssigned};
 use App\Traits\ApiResponseTrait;
 use Illuminate\Support\Facades\Log;
 
@@ -20,6 +20,8 @@ class ReportController extends Controller
 
     public function getEmployers(Request $request)
     {
+        $user = $request->user();
+
         try {
             $perPage = $request->input('per_page', 10);
             $search = $request->input('search', null);
@@ -31,6 +33,14 @@ class ReportController extends Controller
                     $q->where('name', 'like', "%$search%")
                         ->orWhere('email', 'like', "%$search%");
                 });
+            }
+
+            if ($user->user_type === 'manpower_agency') {
+
+                $employerUserIds = ManpowerAssigned::where('manpower_user_id', $user->id)
+                    ->pluck('employer_user_id');
+
+                $query->whereIn('id', $employerUserIds);
             }
 
             $data = $query->orderBy('name', 'asc')->paginate($perPage);
