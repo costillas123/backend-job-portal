@@ -135,7 +135,7 @@
         </tr>
         <tr>
             <td>NAME OF ENTERPRISE:</td>
-            <td colspan="3">{{ $title }}</td>
+            <td colspan="3">{{ $locator->name }}</td>
         </tr>
         <tr>
             <td>NAME OF AGENCY / CONTRACTOR:</td>
@@ -386,12 +386,18 @@
         </div>
         <table style="text-align: center">
             <tr>
-                <td style="width: 25%; padding: 6px; font-size: 14px">{{ $title }}</td>
                 <td style="width: 25%; padding: 6px; font-size: 14px">
-                    {{ ucwords(str_replace('_', ' ', auth()->user()->user_type)) }}
+                    {{ $locator?->employer?->contact_name ?? ($locator?->name ?? '-') }}
                 </td>
-                <td style="width: 25%; padding: 6px; font-size: 14px">{{ auth()->user()->telephone }}</td>
-                <td style="width: 25%; padding: 6px; font-size: 14px">{{ now()->format('M d, Y') }}</td>
+                <td style="width: 25%; padding: 6px; font-size: 14px">
+                    {{ $locator?->employer?->position ?? '-' }}
+                </td>
+                <td style="width: 25%; padding: 6px; font-size: 14px">
+                    {{ $locator?->employer?->telephone ?? ($locator?->telephone ?? '-') }}
+                </td>
+                <td style="width: 25%; padding: 6px; font-size: 14px">
+                    {{ now()->format('M d, Y') }}
+                </td>
             </tr>
             <tr>
                 <td style="padding: 2px; font-size: 12px">Authorized Representative</td>

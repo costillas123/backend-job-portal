@@ -224,7 +224,7 @@ class ReportController extends Controller
 
         foreach ($employerIds as $empIdRaw) {
 
-            $employer = User::with(['reference.details'])->find($empIdRaw);
+            $employer = User::with(['reference.details', 'employer'])->find($empIdRaw);
             if (!$employer) continue;
 
             $reference = $employer->reference()
@@ -271,7 +271,7 @@ class ReportController extends Controller
                  * PDF GENERATION
                  */
                 $pdf = Pdf::loadView("reports.emp-$display", [
-                    'title' => $employer->name,
+                    'locator' => $employer,
                     'generated_at' => now()->format('d F Y'),
                     'records' => $reference,
                     'filters' => $filters

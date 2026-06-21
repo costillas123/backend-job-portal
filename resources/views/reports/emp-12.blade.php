@@ -291,10 +291,18 @@
 
         <table style="text-align:center">
             <tr>
-                <td style="width:25%">{{ $title }}</td>
-                <td style="width:25%">{{ ucwords(str_replace('_', ' ', auth()->user()->user_type)) }}</td>
-                <td style="width:25%">{{ auth()->user()->telephone }}</td>
-                <td style="width:25%">{{ now()->format('M d, Y') }}</td>
+                <td style="width: 25%; padding: 6px; font-size: 14px">
+                    {{ $locator?->employer?->contact_name ?? ($locator?->name ?? '-') }}
+                </td>
+                <td style="width: 25%; padding: 6px; font-size: 14px">
+                    {{ $locator?->employer?->position ?? '-' }}
+                </td>
+                <td style="width: 25%; padding: 6px; font-size: 14px">
+                    {{ $locator?->employer?->telephone ?? ($locator?->telephone ?? '-') }}
+                </td>
+                <td style="width: 25%; padding: 6px; font-size: 14px">
+                    {{ now()->format('M d, Y') }}
+                </td>
             </tr>
             <tr>
                 <td>Authorized Representative</td>
