@@ -292,7 +292,7 @@
         <table style="text-align:center">
             <tr>
                 <td style="width: 25%; padding: 6px; font-size: 14px">
-                    {{ $locator?->employer?->contact_name ? $locator?->employer?->contact_name : $locator?->name }}
+                    {{ $locator?->employer?->contact_person ? $locator?->employer?->contact_person : $locator?->name }}
                 </td>
                 <td style="width: 25%; padding: 6px; font-size: 14px">
                     {{ $locator?->employer?->position ?? '-' }}
