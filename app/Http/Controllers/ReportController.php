@@ -307,11 +307,16 @@ class ReportController extends Controller
                 mkdir($dir, 0777, true);
             }
 
-            $path = $dir . '/' . $file['name'];
+            $filename = pathinfo($file['name'], PATHINFO_FILENAME);
+            $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+
+            $newFilename = $filename . '_' . now()->format('Ymd_His') . '.' . $extension;
+
+            $path = $dir . '/' . $newFilename;
             file_put_contents($path, $file['content']);
 
             return response()->json([
-                'download' => asset("storage/zip/{$file['name']}")
+                'download' => asset("storage/zip/{$newFilename}")
             ]);
         }
 
@@ -481,11 +486,15 @@ class ReportController extends Controller
                 mkdir($dir, 0777, true);
             }
 
-            $path = $dir . '/' . $file['name'];
+            $filename = pathinfo($file['name'], PATHINFO_FILENAME);
+            $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+            $newFilename = $filename . '_' . now()->format('Ymd_His') . '.' . $extension;
+
+            $path = $dir . '/' . $newFilename;
             file_put_contents($path, $file['content']);
 
             return response()->json([
-                'download' => asset("storage/zip/{$file['name']}")
+                'download' => asset("storage/zip/{$newFilename}")
             ]);
         }
 

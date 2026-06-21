@@ -195,7 +195,7 @@
                 <tr>
                     <td>
                         <strong style="display:inline-block;width:35%;">COMPANY NAME:</strong>
-                        <span>{{ $job->employer->user->name ?? 'N/A' }}</span>
+                        <span>{{ $job->employer->contact_person ? $job->employer?->contact_person : $job->employer->user->name }}</span>
                     </td>
                     <td>
                         <strong style="display:inline-block;width:40%;">DATE OF REQUEST:</strong>
