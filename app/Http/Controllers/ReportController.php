@@ -887,7 +887,7 @@ class ReportController extends Controller
             $year = $request->year;
 
 
-            $employer = User::with('reference.details')->find($employerId);
+            $employer = User::with(['reference.details', 'employer'])->find($employerId);
             if (!$employer) {
                 return response()->json(['error' => 'Employer not found'], 404);
             }
@@ -923,7 +923,7 @@ class ReportController extends Controller
             }
 
             $pdf = Pdf::loadView("reports.emp-$display", [
-                'title' => $employer->name,
+                'locator' => $employer,
                 'generated_at' => now()->format('d F Y'),
                 'records' => $reference,
                 'filters' => $filters

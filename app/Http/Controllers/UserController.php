@@ -230,32 +230,34 @@ class UserController extends Controller
 
     public function update(Request $request, string $id)
     {
+
+        $user = User::findOrFail($id);
+
+        // Validate input
+        $validated = $request->validate([
+            'user_type' => 'required|in:employer,peso_school,manpower_agency,secretariat,admin',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'password' => 'nullable|string|min:8',
+            'telephone' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:500',
+            'bio' => 'nullable|string|max:1000',
+            'locator_number' => 'nullable|string|max:100',
+
+            'company_size' => 'nullable|string|max:50',
+            'contact_person' => 'nullable|string|max:255',
+            'position' => 'nullable|string|max:255',
+            'industry' => 'nullable|string|max:255',
+            'sub_industry' => 'nullable|string|max:255',
+
+            'assign_locator_numbers' => 'nullable|array',
+            'assign_locator_numbers.*' => 'exists:users,id',
+            'service_type' => 'nullable|string|max:255',
+            'license_number' => 'nullable|string|max:255',
+            'years_in_operation' => 'nullable|integer',
+        ]);
         try {
-            $user = User::findOrFail($id);
 
-            // Validate input
-            $validated = $request->validate([
-                'user_type' => 'required|in:employer,peso_school,manpower_agency,secretariat,admin',
-                'name' => 'required|string|max:255',
-                'email' => 'required|email|unique:users,email,' . $user->id,
-                'password' => 'nullable|string|min:8',
-                'telephone' => 'nullable|string|max:20',
-                'address' => 'nullable|string|max:500',
-                'bio' => 'nullable|string|max:1000',
-                'locator_number' => 'nullable|string|max:100',
-
-                'company_size' => 'nullable|required_if:user_type,employer|string|max:50',
-                'contact_person' => 'nullable|required_if:user_type,employer|string|max:255',
-                'position' => 'nullable|required_if:user_type,employer|string|max:255',
-                'industry' => 'nullable|required_if:user_type,employer|string|max:255',
-                'sub_industry' => 'nullable|required_if:user_type,employer|string|max:255',
-
-                'assign_locator_numbers' => 'nullable|array',
-                'assign_locator_numbers.*' => 'exists:users,id',
-                'service_type' => 'nullable|string|max:255',
-                'license_number' => 'nullable|string|max:255',
-                'years_in_operation' => 'nullable|integer',
-            ]);
 
             DB::beginTransaction();
 
@@ -277,14 +279,17 @@ class UserController extends Controller
 
             // Employer handling
             if ($validated['user_type'] === 'employer') {
-                $user->employer->update([
-                    'company_size' => $validated['company_size'],
-                    'locator_number' => $validated['locator_number'],
-                    'industry' => $validated['industry'],
-                    'contact_person' => $validated['contact_person'],
-                    'position' => $validated['position'],
-                    'sub_industry' => $validated['sub_industry'],
-                ]);
+                Employer::updateOrCreate(
+                    ['user_id' => $user->id],
+                    [
+                        'company_size' => $validated['company_size'] ?? '',
+                        'locator_number' => $validated['locator_number'] ?? '',
+                        'industry' => $validated['industry'] ?? '',
+                        'contact_person' => $validated['contact_person'] ?? '',
+                        'position' => $validated['position'] ?? '',
+                        'sub_industry' => $validated['sub_industry'] ?? '',
+                    ]
+                );
             }
 
             if ($validated['user_type'] === 'manpower_agency') {

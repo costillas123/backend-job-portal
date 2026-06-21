@@ -387,13 +387,13 @@
         <table style="text-align: center">
             <tr>
                 <td style="width: 25%; padding: 6px; font-size: 14px">
-                    {{ $locator?->employer?->contact_name ?? ($locator?->name ?? '-') }}
+                    {{ $locator?->employer?->contact_name ? $locator?->employer?->contact_name : $locator?->name }}
                 </td>
                 <td style="width: 25%; padding: 6px; font-size: 14px">
                     {{ $locator?->employer?->position ?? '-' }}
                 </td>
                 <td style="width: 25%; padding: 6px; font-size: 14px">
-                    {{ $locator?->employer?->telephone ?? ($locator?->telephone ?? '-') }}
+                    {{ $locator?->telephone ?? '-' }}
                 </td>
                 <td style="width: 25%; padding: 6px; font-size: 14px">
                     {{ now()->format('M d, Y') }}
